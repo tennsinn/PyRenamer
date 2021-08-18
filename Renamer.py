@@ -14,11 +14,11 @@ class Renamer():
 		with open(self.log, 'a', encoding='utf-8') as f:
 			f.write(line+'\n')
 
-	def rename_ref(self):
-		path_ren = input("Path Rename: ")
+	def rename_ref(self, path_ren=None, path_ref=None):
+		path_ren = path_ren if path_ren else input("Path Rename: ")
 		flist_ren = self.get_files_in_path(path_ren)
 		len_ren = len(flist_ren)
-		path_ref = input("Path Ref: ")
+		path_ref = path_ref if path_ref else input("Path Ref: ")
 		flist_ref = self.get_files_in_path(path_ref)
 		len_ref = len(flist_ref)
 		self.log = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())+'.log'
