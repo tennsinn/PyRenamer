@@ -1,5 +1,9 @@
-from Renamer import Renamer as ren
+import sys
+from PySide6.QtWidgets import QApplication
+from QtRenamer import QtRenamer
 
 if __name__ == '__main__':
-	renamer = ren()
-	renamer.rename_ref()
+	app = QApplication(sys.argv)
+	main = QtRenamer()
+	main.show()
+	sys.exit(app.exec())
