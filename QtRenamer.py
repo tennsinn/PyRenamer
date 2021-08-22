@@ -32,7 +32,7 @@ class QtRenamer(QMainWindow):
 
 	def renameRef(self):
 		if self.qtab_ref_pren.path and self.qtab_ref_pref.path:
-			self.renamer.rename_ref(self.qtab_ref_pren.path, self.qtab_ref_pref.path)
+			self.renamer.rename('RenameRef', {'PathRen':self.qtab_ref_pren.path, 'PathRef':self.qtab_ref_pref.path})
 		else:
 			QMessageBox.warning(self, 'Warning', 'Enter the valid path!')
 
