@@ -1,5 +1,6 @@
 import os
 
+from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import QMainWindow, QFrame, QTabWidget, QMessageBox, QLineEdit, QPushButton, QLabel, QFileDialog
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
 
@@ -29,12 +30,21 @@ class QtRenamer(QMainWindow):
 		self.qtab_ref_btn = QPushButton('Start')
 		qtab_ref_lyt.addWidget(self.qtab_ref_btn)
 		self.qtab_ref_btn.clicked.connect(self.renameRef)
+		self.qtab_ref_pref.qpath.textChanged.connect(self.resetBtn)
+		self.qtab_ref_pren.qpath.textChanged.connect(self.resetBtn)
 
+	@Slot()
 	def renameRef(self):
 		if self.qtab_ref_pren.path and self.qtab_ref_pref.path:
+			self.qtab_ref_btn.setText('Renaming...')
 			self.renamer.rename('RenameRef', {'PathRen':self.qtab_ref_pren.path, 'PathRef':self.qtab_ref_pref.path})
+			self.qtab_ref_btn.setText('Done.')
 		else:
 			QMessageBox.warning(self, 'Warning', 'Enter the valid path!')
+
+	@Slot()
+	def resetBtn(self):
+		self.qtab_ref_btn.setText('Start')
 
 class QtPathPicker(QFrame):
 	def __init__(self, label:str):
@@ -54,12 +64,14 @@ class QtPathPicker(QFrame):
 		self.qbtn.clicked.connect(self.selectPath)
 		self.qpath.textChanged.connect(self.updatePath)
 
+	@Slot()
 	def selectPath(self):
 		path = QFileDialog.getExistingDirectory(self, 'Select the Path', self.path, QFileDialog.ShowDirsOnly)
 		if len(path):
 			self.qpath.setText(path)
-	
-	def updatePath(self, path:str):
+
+	@Slot(str)
+	def updatePath(self, path:str=None):
 		if len(path) and os.path.isdir(path) and os.path.exists(path):
 			self.path = path
 			self.qpath.setStyleSheet('')
