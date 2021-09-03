@@ -18,16 +18,13 @@ class Renamer():
 			for (old, new) in renlog:
 				f.write(old+'\t'+new+'\n')
 
-	def validate_path(self, path:str, err:bool=False):
-		msg = ''
+	def validate_path(self, path:str, allow:list):
 		if not os.path.exists(path):
-			msg = 'Path does not exist!'
-		elif not (os.path.isdir(path) or os.path.isfile(path)):
-			msg = 'Path is not a directory or a file!'
-		if err and msg:
-			raise Exception(msg)
-		else:
-			return msg
+			raise Exception("Path does not exist!")
+		elif 'dir' not in allow and os.path.isdir(path):
+			raise Exception("Path can't be a directory!")
+		elif 'file' not in allow and os.path.isfile(path):
+			raise Exception("Path can't be a file!")
 
 	def get_names(self, path:str, ext:bool=True):
 		names = []
@@ -57,15 +54,13 @@ class Renamer():
 			renlog.append((flist_ren[i], flist_ref[i]+ext))
 		return renlog
 
-	def rename(self, mode:str, args:dict={}, name:str=None, err:bool=False):
+	def rename(self, mode:str, args:dict={}, name:str=None):
 		name = re.sub(r'[\\/:*?"<>|\r\n]+', "_", name) if name else None
 		if 'RenameRef' == mode:
-			arg_list = [('PathRen', 'Path Rename: '), ('PathRef', 'Path Reference: ')]
-			for (key, memo) in arg_list:
+			arg_list = [('PathRen', ['dir'], 'Path Rename: '), ('PathRef', ['dir','file'], 'Path Reference: ')]
+			for (key, allow, memo) in arg_list:
 				if key not in args:
 					args[key] = input(memo).replace('\\','/')
-				msg = self.validate_path(args[key], err)
-				if msg:
-					return msg
+					self.validate_path(args[key], allow)
 			renlog = self.rename_ref(args['PathRen'], args['PathRef'])
 			self.write_log('RenameRef', name, {'PathRen':args['PathRen'], 'PathRef':args['PathRef']}, renlog)
