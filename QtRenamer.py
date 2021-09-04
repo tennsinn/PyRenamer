@@ -1,7 +1,7 @@
 import os
 
 from PySide6.QtCore import Signal, Slot
-from PySide6.QtWidgets import QMainWindow, QFrame, QTabWidget, QMessageBox, QLineEdit, QPushButton, QLabel, QFileDialog
+from PySide6.QtWidgets import QMainWindow, QFrame, QRadioButton, QTabWidget, QMessageBox, QLineEdit, QPushButton, QLabel, QFileDialog, QGroupBox
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
 
 from Renamer import Renamer
@@ -14,22 +14,39 @@ class QtRenamer(QMainWindow):
 
 	def initUI(self):
 		self.setWindowTitle('PyRenamer')
-		self.setMinimumWidth(500)
+		self.setMinimumWidth(600)
 		self.qtab = QTabWidget()
 		self.setCentralWidget(self.qtab)
 
 		self.qtab_ref = QFrame()
 		self.qtab.addTab(self.qtab_ref, 'RefRename')
-
 		qtab_ref_lyt = QVBoxLayout()
 		self.qtab_ref.setLayout(qtab_ref_lyt)
+		qtab_ref_lyt2 = QHBoxLayout()
+
+		qtab_ref_conf = QGroupBox('Config')
+		qtab_ref_conf.setLayout(QVBoxLayout())
+		self.qtab_ref_conf_dir = QRadioButton('Ref Dir')
+		qtab_ref_conf.layout().addWidget(self.qtab_ref_conf_dir)
+		self.qtab_ref_conf_dir.setChecked(True)
+		self.qtab_ref_conf_file = QRadioButton('Ref File')
+		qtab_ref_conf.layout().addWidget(self.qtab_ref_conf_file)
+		qtab_ref_lyt2.addWidget(qtab_ref_conf)
+
+		qtab_ref_path = QGroupBox('Path')
+		qtab_ref_path.setLayout(QVBoxLayout())
 		self.qtab_ref_pren = QtPathPicker('Path Ren:')
-		qtab_ref_lyt.addWidget(self.qtab_ref_pren)
+		qtab_ref_path.layout().addWidget(self.qtab_ref_pren)
 		self.qtab_ref_pref = QtPathPicker('Path Ref:')
-		qtab_ref_lyt.addWidget(self.qtab_ref_pref)
+		qtab_ref_path.layout().addWidget(self.qtab_ref_pref)
+		qtab_ref_lyt2.addWidget(qtab_ref_path)
+
+		qtab_ref_lyt.addLayout(qtab_ref_lyt2)
 		self.qtab_ref_btn = QPushButton('Start')
 		qtab_ref_lyt.addWidget(self.qtab_ref_btn)
+
 		self.qtab_ref_btn.clicked.connect(self.renameRef)
+		self.qtab_ref_conf_dir.toggled.connect(self.setPathRefAllow)
 		self.qtab_ref_pref.qpath.textChanged.connect(self.resetBtn)
 		self.qtab_ref_pren.qpath.textChanged.connect(self.resetBtn)
 
@@ -43,14 +60,23 @@ class QtRenamer(QMainWindow):
 			QMessageBox.warning(self, 'Warning', 'Enter the valid path!')
 
 	@Slot()
+	def setPathRefAllow(self):
+		if self.qtab_ref_conf_dir.isChecked():
+			self.qtab_ref_pref.setAllow('dir')
+		else:
+			self.qtab_ref_pref.setAllow('file')
+
+	@Slot()
 	def resetBtn(self):
 		self.qtab_ref_btn.setText('Start')
 
 class QtPathPicker(QFrame):
-	def __init__(self, label:str):
+	def __init__(self, label:str, allow:str='dir'):
 		super().__init__()
 		self.path = ''
+		self.allow = ''
 		self.initUI(label)
+		self.setAllow(allow)
 
 	def initUI(self, label:str):
 		qlyt = QHBoxLayout()
@@ -59,20 +85,30 @@ class QtPathPicker(QFrame):
 		qlyt.addWidget(self.qlabel)
 		self.qpath = QLineEdit()
 		qlyt.addWidget(self.qpath)
-		self.qbtn = QPushButton('Select')
+		self.qbtn = QPushButton()
 		qlyt.addWidget(self.qbtn)
 		self.qbtn.clicked.connect(self.selectPath)
 		self.qpath.textChanged.connect(self.updatePath)
 
+	def setAllow(self, allow:str):
+		if allow in ['dir', 'file']:
+			self.allow = allow
+			self.qbtn.setText('Select '+allow.capitalize())
+		else:
+			QMessageBox.warning(self, "The path should be a directory('dir') or a file('file')")
+
 	@Slot()
 	def selectPath(self):
-		path = QFileDialog.getExistingDirectory(self, 'Select the Path', self.path, QFileDialog.ShowDirsOnly)
-		if len(path):
+		if 'dir' == self.allow:
+			path = QFileDialog.getExistingDirectory(self, 'Select a directory', self.path, QFileDialog.ShowDirsOnly)
 			self.qpath.setText(path)
+		else:
+			path = QFileDialog.getOpenFileName(self, 'Select a file', self.path)
+			self.qpath.setText(path[0])
 
 	@Slot(str)
-	def updatePath(self, path:str=None):
-		if len(path) and os.path.isdir(path) and os.path.exists(path):
+	def updatePath(self, path:str):
+		if len(path) and os.path.exists(path) and (('dir' == self.allow and os.path.isdir(path)) or ('file' == self.allow and os.path.isfile(path))):
 			self.path = path
 			self.qpath.setStyleSheet('')
 		else:
