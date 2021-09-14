@@ -26,11 +26,10 @@ class QtRenamer(QMainWindow):
 
 		qtab_ref_conf = QGroupBox('Config')
 		qtab_ref_conf.setLayout(QVBoxLayout())
-		self.qtab_ref_conf_dir = QRadioButton('Ref Dir')
-		qtab_ref_conf.layout().addWidget(self.qtab_ref_conf_dir)
-		self.qtab_ref_conf_dir.setChecked(True)
-		self.qtab_ref_conf_file = QRadioButton('Ref File')
-		qtab_ref_conf.layout().addWidget(self.qtab_ref_conf_file)
+		qtab_ref_conf_dir = QRadioButton('Dir')
+		qtab_ref_conf.layout().addWidget(qtab_ref_conf_dir)
+		qtab_ref_conf_file = QRadioButton('File')
+		qtab_ref_conf.layout().addWidget(qtab_ref_conf_file)
 		qtab_ref_lyt2.addWidget(qtab_ref_conf)
 
 		qtab_ref_path = QGroupBox('Path')
@@ -45,10 +44,15 @@ class QtRenamer(QMainWindow):
 		self.qtab_ref_btn = QPushButton('Start')
 		qtab_ref_lyt.addWidget(self.qtab_ref_btn)
 
+		# connect signals to slots
 		self.qtab_ref_btn.clicked.connect(self.renameRef)
-		self.qtab_ref_conf_dir.toggled.connect(self.setPathRefAllow)
+		qtab_ref_conf_dir.toggled.connect(self.setPathRefAllow)
+		qtab_ref_conf_file.toggled.connect(self.setPathRefAllow)
 		self.qtab_ref_pref.qpath.textChanged.connect(self.resetBtn)
 		self.qtab_ref_pren.qpath.textChanged.connect(self.resetBtn)
+
+		# set default UI state
+		qtab_ref_conf_dir.setChecked(True)
 
 	@Slot()
 	def renameRef(self):
@@ -61,10 +65,8 @@ class QtRenamer(QMainWindow):
 
 	@Slot()
 	def setPathRefAllow(self):
-		if self.qtab_ref_conf_dir.isChecked():
-			self.qtab_ref_pref.setAllow('dir')
-		else:
-			self.qtab_ref_pref.setAllow('file')
+		allow = self.sender().text().lower()
+		self.qtab_ref_pref.setAllow(allow)
 
 	@Slot()
 	def resetBtn(self):
