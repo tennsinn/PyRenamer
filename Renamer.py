@@ -94,9 +94,12 @@ class Renamer():
 
     def add_ext(self):
         if not self.ext:
-            self.nrefs = [ref+os.path.splitext(ren)[-1] for ren, ref in zip(self.rens, self.nrefs)]
+            self.nrefs = [nref+os.path.splitext(ren)[-1] for ren, nref in zip(self.rens, self.nrefs)]
         elif isinstance(self.ext, str):
             self.nrefs = [ref+'.'+self.ext for ref in self.nrefs]
+
+    def remove_ext(self):
+        self.nrefs = [os.path.splitext(self.nrefs[i])[0] for i in range(0, len(self.nrefs))]
 
     def add_order(self):
         if self.start:
@@ -164,7 +167,7 @@ if __name__ == '__main__':
     if 'dir' == renm:
         rens = r.get_names_from_dir(renp)
     elif 'file' == renm:
-        rens = r.get_names_from_file(input('Rename File: '))
+        rens = r.get_names_from_file(input('Rename File: ').replace('\\', '/'))
     else:
         rens = r.get_names_from_text(input('Rename Text: '))
     r.set_rens(rens)
@@ -172,9 +175,9 @@ if __name__ == '__main__':
     if 'dir' == refm:
         refs = r.get_names_from_dir(input('Reference Path: ').replace('\\', '/'))
     elif 'file' == refm:
-        refs = r.get_names_from_file(input('Reference Path: ').replace('\\', '/'))
+        refs = r.get_names_from_file(input('Reference File: ').replace('\\', '/'))
     else:
-        refs = r.get_names_from_text(input())
+        refs = r.get_names_from_text(input('Reference Text: '))
     r.set_refs(refs)
     r.set_prefix(input('Prefix: '))
     r.set_suffix(input('Suffix: '))
@@ -185,6 +188,8 @@ if __name__ == '__main__':
             r.set_ext(True)
         else:
             r.set_ext(ext)
+    elif 'dir' == refm:
+        r.remove_ext()
     flag = input('Auto Increment? [y/n]: ')
     if 'y' == flag:
         num = input('Start Number: ')
