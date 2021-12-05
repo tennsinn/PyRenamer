@@ -5,6 +5,9 @@ from typing import *
 
 class Renamer():
     def __init__(self):
+        self.init()
+
+    def init(self):
         self.renp = ''
         self.rens = []
         self.refs = []
@@ -14,6 +17,7 @@ class Renamer():
         self.suffix = ''
         self.spr = ' '
         self.start = False
+        self.log = ''
 
     @staticmethod
     def validate_dir(path:str):
@@ -113,12 +117,29 @@ class Renamer():
         self.add_order()
         self.add_prefix()
         self.add_suffix()
+        self.set_log()
+        self.write_log('Rename_Path', renp)
         os.chdir(self.renp)
         for ren, nref in zip(self.rens, self.nrefs):
-            os.rename(ren, nref)
+            try:
+                os.rename(ren, nref)
+            except OSError:
+                status = 'Existed'
+            except:
+                status = 'Error'
+            else:
+                status = 'Succeed'
+            finally:
+                self.write_log(status, ren+' -> '+nref)
 
-    def log(self):
-        pass
+    def set_log(self):
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        self.log = os.path.dirname(__file__)+'/logs/'+time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())+'.log'
+
+    def write_log(self, key:str, val:str):
+        with open(self.log, 'a', encoding='utf-8') as f:
+            f.write(key+'='+val+'\n')
 
     def rollback(self, log):
         pass
