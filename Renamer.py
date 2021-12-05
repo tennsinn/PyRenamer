@@ -141,9 +141,20 @@ class Renamer():
         with open(self.log, 'a', encoding='utf-8') as f:
             f.write(key+'='+val+'\n')
 
-    def rollback(self, log):
-        pass
-
+    def rollback(self, log:str=''):
+        if not log:
+            log = self.log
+        with open(log, 'r', encoding='utf-8') as f:
+            line = f.readline()
+            if line.startswith('Rename_Path='):
+                renp = line.lstrip('Rename_Path=').rstrip('\n')
+                os.chdir(renp)
+            lines = f.readlines()
+            for line in lines:
+                if line.startswith('Succeed='):
+                    line = line.lstrip('Succeed=').rstrip('\n')
+                    line = line.split(' -> ')
+                    os.rename(line[1], line[0])
 
 if __name__ == '__main__':
     r = Renamer()
